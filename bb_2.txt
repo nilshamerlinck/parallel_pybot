@@ -1,0 +1,30 @@
+*** Settings ***
+Library  CommonAutomation
+
+Suite Setup  setup suite
+
+
+*** Variables ***
+
+
+*** Keywords ***
+
+setup suite
+	echo  Setup1, suite!
+
+
+*** Test Cases ***
+
+Moo2
+	echo  Run, moo2, run!
+	sleep  1
+   
+Baz2
+   	echo  Run, baz2, run!
+	sleep  1
+   
+Foo2
+   echo  Run, foo2, run!
+	sleep  1
+   
+   

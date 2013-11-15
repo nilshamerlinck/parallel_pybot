@@ -1,0 +1,15 @@
+.project
+.classpath
+.settings
+target
+tmp
+.externalToolBuilders
+/~
+bb
+*~
+*.iml
+*.iws
+*.ipr
+*.log
+*.pyc
+*.xml
