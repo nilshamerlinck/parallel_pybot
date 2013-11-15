@@ -41,7 +41,7 @@ class Pybot():
     def start(self):
 
         commands = []
-        commands.append("/usr/local/bin/pybot")
+        commands.append(config.PYBOT_CMD)
         for arg in self.args:
             commands.append(arg)
             

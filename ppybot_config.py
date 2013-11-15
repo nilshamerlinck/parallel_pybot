@@ -1,2 +1,3 @@
+PYBOT_CMD = "/usr/local/bin/pybot"
 MAX_PARALLEL_TESTS = 5
 MAX_EXECUTION_TIME = 300
