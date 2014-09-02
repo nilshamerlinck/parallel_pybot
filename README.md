@@ -1,5 +1,5 @@
-parallel_pybot
-==============
+Introduction
+============
 
 This is a parallel launcher for [Pybot](http://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#different-entry-points)
 (see the [Robot Framework](https://github.com/robotframework/robotframework))  that basically allows you to launch several pybot instances at the same time, saving a lot of time on your CI system.
@@ -7,6 +7,21 @@ This is a parallel launcher for [Pybot](http://robotframework.org/robotframework
 We at [Workshare](https://www.workshare.com) we use in our continuous integration system to parallelize the run of pybot tests so that they take less time to execute. Currently our 1k+ integration test sweet for [Workshare Connect](http://www.workshare.com/products/connect) runs in a couple of hours on our windows machine (of course on linux it take less then half but hey, we have to validate our stuff with Windows and IE9). Sweet!
 
 The way it works it's really simple: having you installed successfully the [Robot Framework](https://github.com/robotframework/robotframework)) then if you run [ppybot.py ](https://github.com/workshare/parallel_pybot/blob/master/ppybot.py) in any folder containing tests, it will execute such tests in parallel with [Pybot](http://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#different-entry-points) using the requested configuration (command line or file), aggregating then the results at the end with [Rebot](http://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html#different-entry-points). You can specify the number of retries, the number of parallel bots you want, the timeout for each test... all should work pretty much as you expect it. You can also specify a test that runs before and after the whole parallel running, for global setup and cleanup operation.
+
+When running it also generates [xunit compatible](http://reflex.gforge.inria.fr/xunit.html#xunitReport) output files (named _testname_.xunit.xml) that can be digested easily from your CI (in our case we use the standard [Jenkins](http://jenkins-ci.org/) reporting mechanism).
+
+
+Example
+=======
+When you checkout the project you will also get my super naive example that basically does nothing :) To run it just execute the command:
+```
+python ppybot.py . 
+```
+Two tests will be run in parallel... wowee!
+
+
+Configuration
+=============
 
 It comes with a configuration file that allows you to fix the most common options and most of it is changeable trough the command line:
 * "--timeout"  maximum time in seconds spent in executing one test before aborting 
@@ -35,4 +50,7 @@ while othere can be specified as default in the configuration file:
 * PYBOT_CMD -> "--pybot"
 * REBOT_CMD -> "--rebot"
 
-Any change feel free to go for a pull request, and you can of course clone the project but we will appreciate your contributions back :) 
+
+What else?
+==========
+Any question please open an issue, we will be happy to answer you! Any change feel free to go for a pull request, and you can of course clone the project but we will appreciate your contributions back :) 
