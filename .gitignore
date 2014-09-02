@@ -13,3 +13,6 @@ bb
 *.log
 *.pyc
 *.xml
+logs
+log.html
+report.html
