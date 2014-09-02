@@ -10,21 +10,21 @@ Suite Setup  setup suite
 *** Keywords ***
 
 setup suite
-	echo  Setup1, suite!
+	log  Setup1, suite!
 
 
 *** Test Cases ***
 
 Moo2
-	echo  Run, moo2, run!
+	log  Run, moo2, run!
 	sleep  1
    
 Baz2
-   	echo  Run, baz2, run!
-	sleep  1
+   	log  Run, baz2, run!
+	sleep  2
    
 Foo2
-   echo  Run, foo2, run!
-	sleep  1
+	log  Run, foo2, run!
+	sleep  3
    
    
