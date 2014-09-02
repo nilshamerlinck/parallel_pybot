@@ -17,7 +17,7 @@ When you checkout the project you will also get my super naive example that basi
 ```
 python ppybot.py . 
 ```
-Two tests will be run in parallel... wowee!
+Two tests will be run in parallel... wowee! Now you can basically try it against any folder containing tests you have, and see the magic happens!
 
 
 Configuration
