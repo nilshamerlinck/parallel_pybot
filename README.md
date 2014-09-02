@@ -54,3 +54,6 @@ while othere can be specified as default in the configuration file:
 What else?
 ==========
 Any question please open an issue, we will be happy to answer you! Any change feel free to go for a pull request, and you can of course clone the project but we will appreciate your contributions back :) 
+
+__Disclaimer__
+Please note that I am _not_ a Python developer, so if the code looks naive it's just because I am not procifient enough. Python is actually a beautiful language, but I do not have time to study it properly at the moment, so I did the best that I could in the (very short) time I had.
