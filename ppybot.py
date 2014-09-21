@@ -12,6 +12,156 @@ from os.path import isfile, join
 
 from optparse import OptionParser
 
+
+#
+# support classes
+#
+
+# encapsulate a running pybot process
+class Pybot():
+
+    pid = None
+    process = None
+    started = False
+    
+    ini_time = None
+    end_time = None
+    
+    outFile = None
+    logFile = None
+    xunitFile = None
+    
+    test_result = None
+    test_suite = None
+    
+    attempt = 0
+    
+    def __init__(self, folder, filename, options):
+        self.folder = folder
+        self.name = filename[0:len(filename)-len(".txt")]
+        self.options = options
+
+        self.outFile = "%s.out.xml" % os.path.join(options.logs_folder, self.name)
+        self.logFile = "%s.log" % os.path.join(options.logs_folder, self.name)                               
+        self.xunitFile = "%s.xunit.xml" % os.path.join(options.logs_folder, self.name)                               
+                                       
+    def __del__(self):
+        self._on_finish()
+            
+    def __str__(self):
+        if self.pid == None:
+            return "pybot %s" % (self.name)
+        else:
+            return "pybot %s (pid: %d)" % (self.name, self.pid)
+
+    def _init(self):
+        self.end_time = None
+        self.test_result = None
+        self.test_suite = None
+
+        
+    def start(self, runfailed=False):
+
+        self._init()
+
+        commands = []
+        commands.append(self.options.pybot_cmd)
+        commands.append("-x")
+        commands.append(self.xunitFile)
+        commands.append("-l")
+        commands.append("NONE")
+        commands.append("-r")
+        commands.append("NONE")
+        if runfailed == True:
+            commands.append("--runfailed")
+            commands.append(self.outFile)
+            self.outFileRunfailed  = "%s.rerun.%d.xml" % (os.path.join(self.options.logs_folder, self.name), self.attempt)
+            commands.append("-o")
+            commands.append(self.outFileRunfailed)
+        else:
+            commands.append("-o")
+            commands.append(self.outFile)
+        commands.append(self.name + ".txt")
+
+        self.log = open(self.logFile, "w")
+        self.process = subprocess.Popen(commands, cwd=self.folder, stdout=self.log, stderr=self.log)
+#         self.process = subprocess.Popen(commands, cwd=folder)
+        self.pid = self.process.pid
+        if self.options.verbose: print str(self)+" started!"
+        self.started = True
+        self.ini_time = time.time()
+        
+    def elapsed(self):
+        if self.end_time == None:
+            if self.ini_time == None:
+                return 0
+            else:
+                return time.time() - self.ini_time
+        else:
+            return self.end_time - self.ini_time
+        
+    def wait(self, timeout):
+        self.process.wait()
+        self._on_finish();
+
+    def isRunning(self):
+        running = self.process != None and self.process.poll() == None
+        if not running:
+            if self.options.verbose: print str(self)+" finished!"
+            self._on_finish();
+        return running
+    
+    def isDone(self):
+        return self.started == True and (not self.isRunning())
+    
+    def kill(self):
+        if self.isRunning():
+            self.process.kill()
+            self.process.terminate()
+            self.process.wait()
+            self.process = None
+
+        self._on_finish()
+        print "%s was killed after %d elapsed seconds" % (str(self), self.elapsed())
+
+    def _on_finish(self):
+        try: 
+            self._on_finish_unsafe()
+        except:
+            None
+
+    def _on_finish_unsafe(self):
+        if hasattr(self, 'log') and self.log != None:
+            self.log.close()
+            self.log=None
+
+        if self.end_time == None:
+            self.end_time = time.time()
+
+        self.pid = None
+        self.attempt = self.attempt + 1
+
+        self.load_xunit_results()
+
+    def load_xunit_results(self):
+        if self.xunitFile != None and os.path.isfile(self.xunitFile):
+            if xunitparser != None:
+                with open(self.xunitFile, 'r') as xunit:
+                    self.test_suite, self.test_result = xunitparser.parse(xunit)
+                    
+    def was_successful(self):
+        if self.test_result == None:
+            return False
+        else:
+            return len(self.test_result.errors) == 0 and len(self.test_result.failures) == 0
+
+    def output_file(self):
+        return self.outFile
+
+    def attempts(self):
+        return self.attempt
+ 
+   
 #
 # support functions
 #
@@ -19,7 +169,7 @@ from optparse import OptionParser
 def isWindows():
     return sys.platform.startswith("win")
         
-def run_bots(title, bot_before, bot_after, bots, run_failed=False):
+def run_bots(title, options, folder, bot_before, bot_after, bots, run_failed=False):
     
     torun_bots = remove_successful_bots(bots)
     if len(torun_bots) == 0:
@@ -146,225 +296,85 @@ def makeFixtureBot(folder, filename, options):
     else:
         return None
         
-#
-# support classes
-#
 
-
-# encapsulate a running pybot process
-class Pybot():
-
-    pid = None
-    process = None
-    started = False
-    
-    ini_time = None
-    end_time = None
-    
-    outFile = None
-    logFile = None
-    xunitFile = None
-    
-    test_result = None
-    test_suite = None
-    
-    attempt = 0
-    
-    def __init__(self, folder, filename, options):
-        self.folder = folder
-        self.name = filename[0:len(filename)-len(".txt")]
-        self.options = options
-
-        self.outFile = "%s.out.xml" % os.path.join(options.logs_folder, self.name)
-        self.logFile = "%s.log" % os.path.join(options.logs_folder, self.name)                               
-        self.xunitFile = "%s.xunit.xml" % os.path.join(options.logs_folder, self.name)                               
-                                       
-    def __del__(self):
-        self._on_finish()
-            
-    def __str__(self):
-        if self.pid == None:
-            return "pybot %s" % (self.name)
-        else:
-            return "pybot %s (pid: %d)" % (self.name, self.pid)
-
-    def _init(self):
-        self.end_time = None
-        self.test_result = None
-        self.test_suite = None
-
-        
-    def start(self, runfailed=False):
-
-        self._init()
-
-        commands = []
-        commands.append(options.pybot_cmd)
-        commands.append("-x")
-        commands.append(self.xunitFile)
-        commands.append("-l")
-        commands.append("NONE")
-        commands.append("-r")
-        commands.append("NONE")
-        if runfailed == True:
-            commands.append("--runfailed")
-            commands.append(self.outFile)
-            self.outFileRunfailed  = "%s.rerun.%d.xml" % (os.path.join(options.logs_folder, self.name), self.attempt)
-            commands.append("-o")
-            commands.append(self.outFileRunfailed)
-        else:
-            commands.append("-o")
-            commands.append(self.outFile)
-        commands.append(self.name + ".txt")
-
-        self.log = open(self.logFile, "w")
-        self.process = subprocess.Popen(commands, cwd=folder, stdout=self.log, stderr=self.log)
-#         self.process = subprocess.Popen(commands, cwd=folder)
-        self.pid = self.process.pid
-        if options.verbose: print str(self)+" started!"
-        self.started = True
-        self.ini_time = time.time()
-        
-    def elapsed(self):
-        if self.end_time == None:
-            if self.ini_time == None:
-                return 0
-            else:
-                return time.time() - self.ini_time
-        else:
-            return self.end_time - self.ini_time
-        
-    def wait(self, timeout):
-        self.process.wait()
-        self._on_finish();
-
-    def isRunning(self):
-        running = self.process != None and self.process.poll() == None
-        if not running:
-            if options.verbose: print str(self)+" finished!"
-            self._on_finish();
-        return running
-    
-    def isDone(self):
-        return self.started == True and (not self.isRunning())
-    
-    def kill(self):
-        if self.isRunning():
-            self.process.kill()
-            self.process.terminate()
-            self.process.wait()
-            self.process = None
-
-        self._on_finish()
-        print "%s was killed after %d elapsed seconds" % (str(self), self.elapsed())
-
-    def _on_finish(self):
-        try: 
-            self._on_finish_unsafe()
-        except:
-            None
-
-    def _on_finish_unsafe(self):
-        if hasattr(self, 'log') and self.log != None:
-            self.log.close()
-            self.log=None
-
-        if self.end_time == None:
-            self.end_time = time.time()
-
-        self.pid = None
-        self.attempt = self.attempt + 1
-
-        self.load_xunit_results()
-
-    def load_xunit_results(self):
-        if self.xunitFile != None:
-            if xunitparser != None:
-                with open(self.xunitFile, 'r') as xunit:
-                    self.test_suite, self.test_result = xunitparser.parse(xunit)
-                    
-    def was_successful(self):
-        if self.test_result == None:
-            return False
-        else:
-            return len(self.test_result.errors) == 0 and len(self.test_result.failures) == 0
-
-    def output_file(self):
-        return self.outFile
-
-    def attempts(self):
-        return self.attempt
-    
 #
 # Main execution script
 #
 
-(options, args) =  parse_args()
+def main():
 
-if len(args) == 0:
-    print "A destination folder must be specified!"
-    os.abort()
+    (options, args) =  parse_args()
     
-folder = args[0]
-if options.logs_folder == ".":
-    options.logs_folder = folder
+    if len(args) == 0:
+        print "A destination folder must be specified!"
+        os.abort()
+        
+    folder = args[0]
+    if options.logs_folder == ".":
+        options.logs_folder = folder
+        
+    tests = [ f for f in listdir(folder) if isfile(join(folder,f)) and re.match(config.TEST_REGEXP, f)]
+    if len(tests) == 0:
+        print "No tests found matching regexp "+config.TEST_REGEXP
+        os.abort()
     
-tests = [ f for f in listdir(folder) if isfile(join(folder,f)) and re.match(config.TEST_REGEXP, f)]
-if len(tests) == 0:
-    print "No tests found matching regexp "+config.TEST_REGEXP
-    os.abort()
-
-all_bots = []
-if options.verbose: print "Tests found:"
-for test in tests:
-    all_bots.append(Pybot(folder, test, options))
-    if options.verbose: print "- "+test;
-
-if options.no_fixtures == False:
-    bot_before = makeFixtureBot(folder,config.BEFORE_RUN, options)
-    bot_after  = makeFixtureBot(folder,config.AFTER_RUN, options)
-else:
-    bot_before = None
-    bot_after  = None
+    all_bots = []
+    if options.verbose: print "Tests found:"
+    for test in tests:
+        all_bots.append(Pybot(folder, test, options))
+        if options.verbose: print "- "+test;
     
-start_time = time.time()
-if options.failed_only == False:
-    run_bots("main", bot_before, bot_after, all_bots)
-else:
+    if options.no_fixtures == False:
+        bot_before = makeFixtureBot(folder,config.BEFORE_RUN, options)
+        bot_after  = makeFixtureBot(folder,config.AFTER_RUN, options)
+    else:
+        bot_before = None
+        bot_after  = None
+        
+    start_time = time.time()
+    if options.failed_only == False:
+        run_bots("main", options, folder, bot_before, bot_after, all_bots, False)
+    else:
+        for bot in all_bots:
+            bot.load_xunit_results()
+        all_bots = remove_successful_bots(all_bots)
+    
+    for i in range (1, 1+options.max_attempts):
+        run_bots("failed #"+str(i), options, folder, bot_before, bot_after, all_bots, True)
+    
+    print "\n\n================================================================================="
+    print "TEST FINISHED (elapsed: %d seconds)"  % (time.time() - start_time)
+    print 
     for bot in all_bots:
-        bot.load_xunit_results()
-    all_bots = remove_successful_bots(all_bots)
-
-
-for i in range (1, 1+options.max_attempts):
-    run_bots("failed #"+str(i), bot_before, bot_after, all_bots, True)
-
-print "\n\n================================================================================="
-print "TEST FINISHED (elapsed: %d seconds)"  % (time.time() - start_time)
-print 
-for bot in all_bots:
-    result = " ok " if bot.was_successful() else "FAIL"
-    print "- %s %s %s (attempts %d, elapsed %d seconds)" % (result, get_bot_results(bot), str(bot), bot.attempts(), bot.elapsed())
-print "\n=================================================================================\n"
-
-if options.failed_only == False:
-    print "\nNow running rebot..."
-    commands = []
-    commands.append(options.rebot_cmd)
-    commands.append("--name")
-    commands.append(config.REPORT_NAME)
-    commands.append("--output")
-    commands.append(config.REPORT_FILENAME)
-    commands.append("*.out.xml")
+        result = " ok " if bot.was_successful() else "FAIL"
+        print "- %s %s %s (attempts %d, elapsed %d seconds)" % (result, get_bot_results(bot), str(bot), bot.attempts(), bot.elapsed())
+    print "\n=================================================================================\n"
     
-    cli = ""
-    for cmd in commands:
-        cli = cli + cmd + " "
-    print cli
-    print
+    if options.failed_only == False:
+        print "\nNow running rebot..."
+        commands = []
+        commands.append(options.rebot_cmd)
+        commands.append("--name")
+        commands.append(config.REPORT_NAME)
+        commands.append("--output")
+        commands.append(config.REPORT_FILENAME)
+        commands.append("*.out.xml")
+        
+        cli = ""
+        for cmd in commands:
+            cli = cli + cmd + " "
+        print cli
+        print
+        
+        subprocess.call(commands, cwd=options.logs_folder)
     
-    subprocess.call(commands, cwd=options.logs_folder)
+    print "\nDone!"
 
-print "\nDone!"
 
+#
+# script launch support
+#
+
+if __name__ == "__main__":
+    main()
 
