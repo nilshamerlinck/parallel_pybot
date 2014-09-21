@@ -85,7 +85,6 @@ class Pybot():
 
         self.log = open(self.logFile, "w")
         self.process = subprocess.Popen(commands, cwd=self.folder, stdout=self.log, stderr=self.log)
-#         self.process = subprocess.Popen(commands, cwd=folder)
         self.pid = self.process.pid
         if self.options.verbose: print str(self)+" started!"
         self.started = True
@@ -295,11 +294,27 @@ def makeFixtureBot(folder, filename, options):
         return Pybot(folder, filename, options)
     else:
         return None
-        
+
+def runtime_okay(options):
+    return is_executable(options.pybot_cmd) and is_executable(options.rebot_cmd)
+
+def is_executable(runtime):
+    try:
+        commands = []
+        commands.append(runtime)
+        commands.append("--version")
+        process = subprocess.Popen(commands)
+        process.wait()
+        return True
+    except:
+        print "Cannot execute "+runtime+" - please check your configuration / parameters"
+        return False
+
 
 #
 # Main execution script
 #
+
 
 def main():
 
@@ -308,6 +323,13 @@ def main():
     if len(args) == 0:
         print "A destination folder must be specified!"
         os.abort()
+        
+    if runtime_okay(options) == False:
+        print "The runtime is not correctly configured - I cannot run :("
+        os.abort()
+    else:
+        if options.verbose: print "Runtime succesfully verified \n"
+
         
     folder = args[0]
     if options.logs_folder == ".":
