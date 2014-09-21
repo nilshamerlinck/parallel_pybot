@@ -89,7 +89,10 @@ def remove_successful_bots(bots):
 
 def get_bot_results(bot):
     tc = bot.test_result
-    return "%2.2d/%2.2d" % (tc.testsRun-len(tc.errors)-len(tc.failures), tc.testsRun)
+    if tc ==  None:
+        return "not executed"
+    else:
+        return "%2.2d/%2.2d" % (tc.testsRun-len(tc.errors)-len(tc.failures), tc.testsRun)
     
 def dump_bots(running_bots, queued_bots, done_bots):
     print "\n-------------------------------------------------"
