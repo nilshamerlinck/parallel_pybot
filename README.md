@@ -51,6 +51,15 @@ while othere can be specified as default in the configuration file:
 * REBOT_CMD -> "--rebot"
 
 
+Dependencies
+============
+The tool requires the [xunitparser library](https://pypi.python.org/pypi/xunitparser), you can install it via pip
+```
+sudo pip install xunitparser 
+```
+Or follow the instructions at the link :)
+
+
 What else?
 ==========
 Any question please open an issue, we will be happy to answer you! Any change feel free to go for a pull request, and you can of course clone the project but we will appreciate your contributions back :) 
