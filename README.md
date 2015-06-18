@@ -34,7 +34,9 @@ It comes with a configuration file that allows you to fix the most common option
 * "--failed-only"  runs only the failed tests
 * "--verbose"  verbose mode, more details about wassup
 * "--no-fixtures"  no fixture code will be run before / after executions
-* "--select-from"  speficy a file containing the names of the test files to execute
+* "--select-from"  specify a file containing the names of the test files to execute
+* "--pybot-opts"  options to pass straight to pybot
+* "--rebot-opts"  options to pass straight to rebot
 
 
 The are few thing tough only configurable trough the [configuration file](https://github.com/workshare/parallel_pybot/blob/master/ppybot_config.py):

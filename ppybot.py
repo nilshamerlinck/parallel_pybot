@@ -13,9 +13,7 @@ from os.path import isfile, join
 from optparse import OptionParser
 
 
-#
-# support classes
-#
+
 
 # encapsulate a running pybot process
 class Pybot():
@@ -81,6 +79,8 @@ class Pybot():
         else:
             commands.append("-o")
             commands.append(self.outFile)
+            
+        update_options(commands, self.options.pybot_opts)
         commands.append(self.name + ".txt")
 
         self.log = open(self.logFile, "w")
@@ -164,6 +164,13 @@ class Pybot():
 #
 # support functions
 #
+
+def update_options(commands, optstring):
+  if optstring != None:
+    opts = optstring.split()
+    for opt in opts:
+      commands.append(opt)
+
 
 def isWindows():
     return sys.platform.startswith("win")
@@ -286,6 +293,8 @@ def parse_args():
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="verbose mode, more details about wassup")
     parser.add_option("-x", "--no-fixtures", action="store_true", dest="no_fixtures", default=False, help="no fixture code will be run before / after executions")
     parser.add_option("-s", "--select-from", dest="tests_file", type="string", help="select the files that will be run from a file")
+    parser.add_option("--pybot-opts", dest="pybot_opts", default=None, help="additional commands to send to pybot")
+    parser.add_option("--rebot-opts", dest="rebot_opts", default=None, help="additional commands to send to rebot")
 
     return parser.parse_args()
   
@@ -391,7 +400,8 @@ def main():
         commands.append("--output")
         commands.append(config.REPORT_FILENAME)
         commands.append("*.out.xml")
-        
+        update_options(commands, options.rebot_opts)
+
         cli = ""
         for cmd in commands:
             cli = cli + cmd + " "

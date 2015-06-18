@@ -20,11 +20,12 @@ Moo1
 	sleep  1
    
 Baz1
-    	log  Run, baz1, run!
+	log  Run, baz1, run!
 	sleep  2
    
 Foo1
-    	log  Run, foo1, run!
+	[Tags]  fails
+	log  Run, foo1, run!
 	assert equal  1  2
   
    
