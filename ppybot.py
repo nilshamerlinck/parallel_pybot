@@ -285,6 +285,7 @@ def parse_args():
     parser.add_option("-f", "--failed-only", action="store_true", dest="failed_only", default=False, help="runs only the failed tests")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False, help="verbose mode, more details about wassup")
     parser.add_option("-x", "--no-fixtures", action="store_true", dest="no_fixtures", default=False, help="no fixture code will be run before / after executions")
+    parser.add_option("-s", "--select-from", dest="tests_file", type="string", help="select the files that will be run from a file")
 
     return parser.parse_args()
   
@@ -311,10 +312,19 @@ def is_executable(runtime):
         return False
 
 
+def get_test_files(folder, options):
+    if options.tests_file != None:
+        tests = [line.rstrip('\n') for line in open(options.tests_file)]
+    elif config.TEST_REGEXP != None:
+        tests = [f for f in listdir(folder) if isfile(join(folder, f)) and re.match(config.TEST_REGEXP, f)]
+    else:
+        tests = []
+        
+    return tests
+
 #
 # Main execution script
 #
-
 
 def main():
 
@@ -335,9 +345,9 @@ def main():
     if options.logs_folder == ".":
         options.logs_folder = folder
         
-    tests = [ f for f in listdir(folder) if isfile(join(folder,f)) and re.match(config.TEST_REGEXP, f)]
+    tests = get_test_files(folder, options)
     if len(tests) == 0:
-        print "No tests found matching regexp "+config.TEST_REGEXP
+        print "No tests found or selected"
         os.abort()
     
     all_bots = []

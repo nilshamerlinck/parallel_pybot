@@ -34,6 +34,8 @@ It comes with a configuration file that allows you to fix the most common option
 * "--failed-only"  runs only the failed tests
 * "--verbose"  verbose mode, more details about wassup
 * "--no-fixtures"  no fixture code will be run before / after executions
+* "--select-from"  speficy a file containing the names of the test files to execute
+
 
 The are few thing tough only configurable trough the [configuration file](https://github.com/workshare/parallel_pybot/blob/master/ppybot_config.py):
 - TEST_REGEXP  the regular expression used to identify tests in the folder, i.e. '.*\.txt' (all .txt files)
@@ -42,13 +44,17 @@ The are few thing tough only configurable trough the [configuration file](https:
 - REPORT_NAME  the name of the rebot report
 - REPORT_FILENAME  the filename of the rebot report
 
-while othere can be specified as default in the configuration file:
+while others can be specified as default in the configuration file:
 * MAX_EXECUTION_TIME -> "--timeout"
 * FAILED_RERUNS -> "--reruns"
 * MAX_PARALLEL_TESTS -> "--parallels"
 * ADVERTISE_TIME -> "--advertise"
 * PYBOT_CMD -> "--pybot"
 * REBOT_CMD -> "--rebot"
+
+Now it's also possible to specifically list the tests you want to execute with the runtime parameter --select-from followed by the name of 
+a plain text file containing for each line a test file name. This is useful when you need to build suites that are generated dynamically
+and unrelated to the robot tags mechanism. A sample is included here, tests.lst, that will run only the ok tests.
 
 
 Dependencies
