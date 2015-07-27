@@ -1,0 +1,21 @@
+*** Settings ***
+Library  Selenium2Library
+
+
+*** Variables ***
+
+${BROWSER}  firefox
+${SPEED}  .5
+
+
+*** Keywords ***
+    
+Prepare Browser
+  Open Browser  https://www.google.co.uk/   ${BROWSER}
+  Title Should Be  Google
+  Set Selenium Speed  ${SPEED}
+
+Search On Google  [Arguments]  ${what}
+  input text  name=q  ${what}  
+  click element  name=btnG
+  wait until page contains element  id=resultStats

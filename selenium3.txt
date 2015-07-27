@@ -1,0 +1,13 @@
+*** Settings ***
+Resource  common.txt
+
+Test Setup  	Prepare Browser
+Test Teardown   Close All Browsers
+
+
+*** Test Cases ***
+Google Search Test
+
+  Search On google  foo
+  Search On google  pybot
+  Search On google  yoodledao
