@@ -188,7 +188,9 @@ def run_bots(title, options, folder, bot_before, bot_after, bots, run_failed=Fal
     print "- source folder: "+folder
     print "- results folder: "+options.logs_folder
     print "- max parallel pybots (processes): "+str(options.max_parallel_tests)
-    print "- max time allowed (seconds): "+str(options.max_execution_time)
+    print "- max time allowed per bot (seconds): "+str(options.max_execution_time)
+    if options.max_execution_time_total:
+        print "- max total time of execution (seconds): "+str(options.max_execution_time_total)    
     print "\n=================================================================================\n"
     
     if (bot_before != None):
@@ -196,13 +198,14 @@ def run_bots(title, options, folder, bot_before, bot_after, bots, run_failed=Fal
         bot_before.start()
         bot_before.wait(60)
         print "Done!\n"
-    
+
+    start_time=time.time()
     last_dump=time.time()
     done_bots = []
     all_bots = torun_bots[:]
     running_bots = []
     while len(all_bots) > 0 or len(running_bots) > 0:
-        
+
         time.sleep(1)
         
         for bot in running_bots:
@@ -211,12 +214,20 @@ def run_bots(title, options, folder, bot_before, bot_after, bots, run_failed=Fal
                 done_bots.append(bot)
             if bot.elapsed() > options.max_execution_time:
                 running_bots.remove(bot)
-                bot.kill();
-
+                bot.kill()
+        
         if time.time() > last_dump + options.advertise_time:
             last_dump = time.time()
-            dump_bots(running_bots, all_bots, done_bots)                
-    
+            dump_bots(running_bots, all_bots, done_bots)
+
+        if options.max_execution_time_total and (time.time() > start_time + options.max_execution_time_total):
+            for bot in running_bots:
+                bot.kill()
+
+            running_bots = []
+
+            break
+
         if len(running_bots) == options.max_parallel_tests:
             continue
          
@@ -224,8 +235,8 @@ def run_bots(title, options, folder, bot_before, bot_after, bots, run_failed=Fal
             bot = all_bots[0];
             all_bots.remove(bot)
             running_bots.append(bot)
-            bot.start(run_failed)
-        
+            bot.start(run_failed)        
+    
     dump_bots(running_bots, all_bots, done_bots)
 
     if (bot_after != None):
@@ -278,6 +289,8 @@ def parse_args():
     parser = OptionParser(usage=usage)
     parser.add_option("-t", "--timeout", dest="max_execution_time", type="int", default=config.MAX_EXECUTION_TIME,
                       help="maximum time in seconds spent in executing one test before aborting", metavar="SECONDS")
+    parser.add_option("--timeout-total", dest="max_execution_time_total", type="int", default=config.MAX_EXECUTION_TIME_TOTAL,
+                      help="maximum time in seconds spent in executing all tests", metavar="SECONDS")    
     parser.add_option("-r", "--reruns", dest="max_attempts", type="int", default=config.FAILED_RERUNS,
                       help="maximum number of reruns executed on failed tests", metavar="NUM")
     parser.add_option("-p", "--parallels", dest="max_parallel_tests", type="int", default=config.MAX_PARALLEL_TESTS,
