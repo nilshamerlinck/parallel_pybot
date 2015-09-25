@@ -72,7 +72,7 @@ class Pybot():
         commands.append("-r")
         commands.append("NONE")
         if runfailed == True:
-            commands.append("--runfailed")
+            commands.append("--rerunfailed")
             commands.append(self.outFile)
             self.outFileRunfailed  = "%s.rerun.%d.xml" % (os.path.join(self.options.logs_folder, self.name), self.attempt)
             commands.append("-o")
