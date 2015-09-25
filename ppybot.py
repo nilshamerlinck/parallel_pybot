@@ -212,6 +212,10 @@ def run_bots(title, options, folder, bot_before, bot_after, bots, run_failed=Fal
             if bot.elapsed() > options.max_execution_time:
                 running_bots.remove(bot)
                 bot.kill();
+
+        if time.time() > last_dump + options.advertise_time:
+            last_dump = time.time()
+            dump_bots(running_bots, all_bots, done_bots)                
     
         if len(running_bots) == options.max_parallel_tests:
             continue
@@ -221,11 +225,7 @@ def run_bots(title, options, folder, bot_before, bot_after, bots, run_failed=Fal
             all_bots.remove(bot)
             running_bots.append(bot)
             bot.start(run_failed)
-    
-        if time.time() > last_dump + options.advertise_time:
-            last_dump = time.time()
-            dump_bots(running_bots, all_bots, done_bots)
-    
+        
     dump_bots(running_bots, all_bots, done_bots)
 
     if (bot_after != None):
