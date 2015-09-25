@@ -12,7 +12,7 @@ REBOT_CMD = "/usr/local/bin/rebot"
 
 
 # Other cross platform configuration items
-TEST_REGEXP = '.*\.txt'
+TEST_REGEXP = '.*\.(txt|robot)'
 MAX_PARALLEL_TESTS = 5
 MAX_EXECUTION_TIME = 6000
 FAILED_RERUNS = 2

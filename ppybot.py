@@ -36,7 +36,8 @@ class Pybot():
     
     def __init__(self, folder, filename, options):
         self.folder = folder
-        self.name = filename[0:len(filename)-len(".txt")]
+        self.filename = filename
+        self.name = os.path.splitext(filename)[0]
         self.options = options
 
         self.outFile = "%s.out.xml" % os.path.join(options.logs_folder, self.name)
@@ -81,7 +82,7 @@ class Pybot():
             commands.append(self.outFile)
             
         update_options(commands, self.options.pybot_opts)
-        commands.append(self.name + ".txt")
+        commands.append(self.filename)
 
         self.log = open(self.logFile, "w")
         self.process = subprocess.Popen(commands, cwd=self.folder, stdout=self.log, stderr=self.log)
